@@ -1,0 +1,2 @@
+-- Bundled Phoenix-derived snapshot, not a live query; see SOURCES.md.
+return {["rows"]={{["name"]="Klara",["min"]=76,["max"]=78,["aggro"]=false,["link"]=false,["methods"]={"Sight"}},{["name"]="Marquis Amon past",["min"]=77,["max"]=79,["aggro"]=true,["link"]=true,["methods"]={"Sight","Scent"}},{["name"]="Zeid",["min"]=75,["max"]=75,["aggro"]=true,["link"]=false,["methods"]={"True Sight"}}},["ids"]={[17416214]=1,[17416215]=2,[17416216]=3,[17416217]=1,[17416218]=2,[17416219]=3,[17416220]=1,[17416221]=2,[17416222]=3},["names"]={["Klara"]=1,["Marquis Amon past"]=2,["Zeid"]=3}}
