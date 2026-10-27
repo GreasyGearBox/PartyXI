@@ -1,6 +1,7 @@
 # PartyXI
 
 A replacement for the native party frames, with a target bar and optional combat HUD.
+![First image](images/image1.png)
 
 ## Party frames
 
@@ -18,6 +19,10 @@ A replacement for the native party frames, with a target bar and optional combat
 
 - **Personal TP arc:** an independently movable TP display for your HUD.
 - **Sneak Attack tracking [beta]:** displays an estimated cooldown countdown in the party member’s portrait.
-- **Shadow / Third Eye tracking [beta]:** a blue portrait ring indicates active protection. The ring turns red when all tracked protection is lost. Players who have not activated either effect keep their normal portrait. An optional, independently movable notification announces protection loss.
+  ![Third image](images/image3.png)
+- **Shadow / Third Eye tracking [beta]:** a blue portrait ring indicates active protection. The ring turns red when all tracked protection is lost. Players who have not activated either effect keep their normal
+  ![Second image](images/image2.png)
+- portrait. An optional, independently movable notification announces protection loss.
 
 Open settings with `/pxi` or `/partyxi`.
+
