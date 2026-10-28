@@ -1,6 +1,6 @@
 addon.name='partyxi'
 addon.author='Mr.Bear'
-addon.version='0.1.70'
+addon.version='0.1.73'
 addon.desc='Party frames, target and subtarget HUD, and personal TP arc for Ashita v4.'
 require('common')
 local imgui=require('imgui')
@@ -138,7 +138,7 @@ local function assets()
     if not boldOK or not bold then boldOK,bold=pcall(imgui.AddFontFromFileTTF,addon.path..'assets/Rajdhani-Bold.ttf',24) end
     boldFont=boldOK and bold or font
     assetsReady=true
-    return false -- Rebuild the font atlas before first use.
+    return true
 end
 local function texture(relative,effectId)
     -- PNG names are native DAT icon indices. Resolve effect IDs via the client's resource map.
@@ -344,8 +344,10 @@ local function controls()
     imgui.PopStyleVar()
     configOpen=open[1]
 end
+-- Font atlas changes must happen outside a render frame on Phoenix Ashita.
+ashita.events.register('load','partyxi_load',assets)
 ashita.events.register('d3d_present','partyxi_present',function()
-    if not assets() then return end
+    if not assetsReady then return end
     local now=imgui.GetTime()
     local dt=math.min(.1,math.max(0,now-(previousTime or now)));previousTime=now
     local identity=data.call(AshitaCore:GetMemoryManager():GetParty(),'GetMemberServerId',0)
@@ -367,7 +369,7 @@ ashita.events.register('d3d_present','partyxi_present',function()
     local arcTrail
     if me and me.available and me.tp~=nil then
         local entity=GetPlayerEntity()
-        local shown=cfg.gaugeAlways or (entity and entity.Status==1)
+        local shown=configOpen or cfg.gaugeAlways or (entity and entity.Status==1)
         progress=model.clamp(progress+(shown and 1 or -1)*dt/cfg.riseTime,0,1)
         arcTrail,drainState=drain.value(drainState,me.tp,now,cfg.drainSeconds,cfg.drainEnabled,cfg.highDrainSeconds)
     else drainState=nil;progress=0 end
@@ -413,9 +415,9 @@ ashita.events.register('d3d_present','partyxi_present',function()
         -- its clip boundary outside the artwork and TP number.
         local margin=math.max(32,32*s)
         local height=math.max(370,346+cfg.gaugeTextSize+8)*s
-        if beginWindow('TP###partyxi_tp',cfg.gaugeX-margin,cfg.gaugeY-margin,130*s+2*margin,height+2*margin) then
+        if beginWindow('TP###partyxi_tp',cfg.gaugeX-margin,cfg.gaugeY-margin,130*s+2*margin,height+2*margin,true) then
             view.gauge(imgui.GetWindowDrawList(),cfg.gaugeX,cfg.gaugeY,s,me.tp,arcTrail,progress,cfg.riseTravel,boldFont or font,cfg.gaugeTextSize,personal.tpPulse,cfg.gaugePulseStrength)
-            drag('tp_drag',cfg.gaugeX,cfg.gaugeY,130*s,370*s,'gaugeX','gaugeY')
+            drag('tp_drag',cfg.gaugeX,cfg.gaugeY,130*s,370*s,'gaugeX','gaugeY',not configOpen and cfg.locked)
         end
         imgui.End()
     end

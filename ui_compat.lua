@@ -18,16 +18,10 @@ local function dimensions(value,height)
 end
 function M.measure(gui,font,value,size,scale)
     value=tostring(value);scale=scale or 1
-    -- Measure the exact font and pixel size passed to AddText, independent of
-    -- window/global font scaling and ImGui 1.92 dynamic font defaults.
-    local ok,result,height=pcall(function()return font:CalcTextSizeA(size*scale,1000000,0,value)end)
-    if ok then
-        local w,h=dimensions(result,height)
-        if w then return w/scale,(h or size*scale)/scale end
-    end
-    -- Compatibility path for hosts without the explicit font method.
+    -- Phoenix's direct ImFont:CalcTextSizeA binding raises a native access
+    -- violation. Measure through the active ImGui font instead.
     local pushed=font and type(gui.PushFont)=='function'
-    if pushed then M.pushFont(gui,font,24) end
+    if pushed then M.pushFont(gui,font,M.modern() and size*scale or 24) end
     local native=type(gui.GetFontSize)=='function' and gui.GetFontSize() or 24
     if type(native)~='number' or native<=0 then native=24 end
     local w,h=dimensions(gui.CalcTextSize(value))
