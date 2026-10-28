@@ -1,5 +1,6 @@
 local M={}
 local model=require('model')
+local ui=require('ui_compat')
 local metadata=require('effects')
 local jobAssets=require('jobs')
 local hatLayout=require('hat_layout')
@@ -44,13 +45,16 @@ function M.party(imgui,dl,x,y,s,roster,font,texture,hit,preview,showTP,showHeade
         end
         dl:AddText(drawFont or font,size*s,pos,color,label)
     end
+    local function measure(value,size,drawFont)
+        return ui.measure(imgui,drawFont or font,value,size,s)
+    end
     local function right(a,b,value,size,col,drawFont)
-        if drawFont then imgui.PushFont(drawFont) end
-        local width=imgui.CalcTextSize(tostring(value))
-        if type(width)~='number' then width=width.x or width[1] end
-        -- Font atlas is 24px. Measurement at its native size, then scale to draw size.
-        text(a-width*size/24,b,value,size,col,false,drawFont)
-        if drawFont then imgui.PopFont() end
+        text(a-measure(value,size,drawFont),b,value,size,col,false,drawFont)
+    end
+    local function clipped(left,rightEdge,upper,lower,value,size,col,drawFont)
+        dl:PushClipRect(p(left,upper),p(rightEdge,lower),true)
+        text(left,upper,value,size,col,false,drawFont)
+        dl:PopClipRect()
     end
     if showHeader then
         rect(2,0,394,29,0xF0402B18)
@@ -71,28 +75,31 @@ function M.party(imgui,dl,x,y,s,roster,font,texture,hit,preview,showTP,showHeade
         -- Limit long names to their assigned space; preserve full name in tooltip.
         local distance=m.distance and string.format('%.1fy',m.distance) or '--'
         local jobLabel=job..'/'..(jobs[m.subjob] or '?')
-        local function measure(value,size)
-            local width=imgui.CalcTextSize(value)
-            if type(width)~='number' then width=width.x or width[1] end
-            return width*size/24
-        end
-        local distanceWidth=measure(distance,layout.distanceText)
-        local jobRight=387-distanceWidth-8
-        local nameRight=math.min(260,jobRight-measure(jobLabel,layout.jobText)-8)
-        nameRight=math.max(77,nameRight)
-        dl:PushClipRect(p(77,nameTop-1),p(nameRight,nameTop+layout.nameText+2),true)
-        text(77,nameTop,m.name,layout.nameText,m.isLeader and colors.leaderName or colors.memberName,false,boldFont)
-        dl:PopClipRect()
-        if hit('name'..m.id,77,nameTop,183,layout.nameText+2,m) then imgui.SetTooltip(m.name..'\nClick to target') end
-        right(jobRight,nameTop+3,jobLabel,layout.jobText,colors.muted)
-        right(387,nameTop+3,distance,layout.distanceText,m.distance and m.distance>20 and 0xFF6666FF or colors.muted)
+        local distanceRight=387
+        local distanceBudget=math.min(140,(distanceRight-77)*.45)
+        distance=ui.fit(imgui,font,distance,layout.distanceText,distanceBudget-2,s)
+        local distanceLeft=distanceRight-measure(distance,layout.distanceText)-2
+        local jobRight=distanceLeft-8
+        jobLabel=ui.fit(imgui,font,jobLabel,layout.jobText,math.max(0,jobRight-77-56),s)
+        local jobLeft=jobRight-measure(jobLabel,layout.jobText)-2
+        local nameRight=math.max(77,jobLeft-8)
+        local name=ui.fit(imgui,boldFont or font,m.name,layout.nameText,nameRight-77-2,s)
+        clipped(77,nameRight,nameTop,nameTop+layout.nameText+3,name,layout.nameText,m.isLeader and colors.leaderName or colors.memberName,boldFont)
+        if hit('name'..m.id,77,nameTop,math.max(1,nameRight-77),layout.nameText+2,m) then imgui.SetTooltip(m.name..'\nClick to target') end
+        clipped(jobLeft,jobRight,nameTop+3,nameTop+layout.jobText+6,jobLabel,layout.jobText,colors.muted)
+        clipped(distanceLeft,distanceRight,nameTop+3,nameTop+layout.distanceText+6,distance,layout.distanceText,m.distance and m.distance>20 and 0xFF6666FF or colors.muted)
         local function bar(label,current,maximum,percent,by,bg,left,rightColor,height,textSize,textOffset)
             height=height or 15;textSize=textSize or 10;textOffset=textOffset or 1
             local edge=showTP~=false and 343 or 383
             rect(77,by,edge,by+height,bg)
             local ratio=m.available and model.clamp(percent,0,100)/100 or 0
             if ratio>0 then dl:AddRectFilledMultiColor(p(77,by),p(77+(edge-77)*ratio,by+height),left,rightColor,rightColor,left) end
-            right(edge-3,by+textOffset,label..' '..model.resource(current,maximum),textSize,nil,boldFont)
+            local value=label..' '..model.resource(current,maximum)
+            local valueWidth=measure(value,textSize,boldFont)
+            local size=math.min(textSize,(edge-77-8)*textSize/math.max(1,valueWidth))
+            dl:PushClipRect(p(77,by),p(edge,by+height),true)
+            right(edge-3,by+(height-size)/2,value,size,nil,boldFont)
+            dl:PopClipRect()
         end
         bar('HP',m.hp,m.maxhp,m.hpp,top+31,0xFF2C253B,0xFF44349C,0xFF736AE3,layout.hpHeight,layout.hpText,layout.hpTextOffset)
         bar('MP',m.mp,m.maxmp,m.mpp,top+layout.mpY,0xFF223B42,0xFF3589A3,0xFF6CC7E1,layout.mpHeight,layout.mpText,layout.mpTextOffset)
@@ -133,13 +140,16 @@ function M.party(imgui,dl,x,y,s,roster,font,texture,hit,preview,showTP,showHeade
                 dl:AddImage(hat,p(placement.x,top+placement.y),p(placement.x+placement.w,top+placement.y+placement.h),
                     {placement.u0,placement.v0},{placement.u1,placement.v1})
             else dl:AddImage(hat,p(12,top+33),p(61,top+82)) end
-        else text(16,top+40,'HAT ?',10,colors.muted) end
+        else
+            -- Unknown/anonymous jobs, cross-zone data and failed textures always
+            -- retain a visible neutral portrait instead of a missing image.
+            local size=30
+            local width=measure('?',size)
+            text(36.5-width/2,top+57.5-size/2,'?',size,0xFFE0D5CA)
+        end
         if cfg and cfg.showSAHats and m.saRemaining and m.saRemaining>0 then
             local value=tostring(math.ceil(m.saRemaining))
-            local measured,height=imgui.CalcTextSize(value)
-            local width
-            if type(measured)=='number' then width=measured;height=height or 24
-            else width=measured.x or measured[1];height=measured.y or measured[2] or 24 end
+            local width,height=ui.measure(imgui,font,value,24,s)
             -- Large, solid red digits centered in the portrait; fit long values
             -- to its interior rather than allowing them to spill over the rim.
             local size=math.min(48,54*24/math.max(1,width),48*24/math.max(1,height))

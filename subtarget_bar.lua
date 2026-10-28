@@ -1,3 +1,4 @@
+local ui=require('ui_compat')
 local M={width=190,height=36}
 function M.initialPlacement(cfg)
     return math.max(0,cfg.targetX+(cfg.targetWidth-8-M.width)*cfg.targetScale),
@@ -7,9 +8,7 @@ end
 function M.draw(gui,dl,x,y,sub,font,scale)
     local function p(a,b)return {x+a*scale,y+b*scale}end
     local function width(value,size)
-        local a=gui.CalcTextSize(value)
-        if type(a)~='number' then a=a.x or a[1]end
-        return a*size/24
+        return ui.measure(gui,font,value,size,scale)
     end
     local name=sub.name or ''
     local offset=math.max(1,scale*.75)

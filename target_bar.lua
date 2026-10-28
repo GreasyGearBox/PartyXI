@@ -1,3 +1,4 @@
+local ui=require('ui_compat')
 local M={}
 local mobs=require('target_mobinfo')
 local anonymous={}
@@ -142,9 +143,7 @@ function M.draw(gui,dl,x,y,t,font,cfg,texture,nameFont)
     local s,w=cfg.targetScale,cfg.targetWidth
     local function p(a,b)return {x+a*s,y+b*s}end
     local function width(value,size)
-        local a=gui.CalcTextSize(value)
-        if type(a)~='number' then a=a.x or a[1]end
-        return a*size/24
+        return ui.measure(gui,font,value,size,s)
     end
     local function fit(value,size,limit)
         limit=math.max(0,limit-math.max(1/s,.75))
@@ -172,8 +171,8 @@ function M.draw(gui,dl,x,y,t,font,cfg,texture,nameFont)
     local infoY=hpY+hpH+7
     local panelBottom=infoY+(details~='' and cfg.targetInfoSize+3 or 0)
     -- Main target name always uses the bold face, including width measurement.
-    if nameFont then gui.PushFont(nameFont) end
-    text(trackLeft,nameY,fit(t.name,cfg.targetNameSize,trackRight-trackLeft-reserved),cfg.targetNameSize,t.nameColor or (t.monster and 0xFF66FFFF or 0xFFFFDFC0),nameFont)
+    if nameFont then ui.pushFont(gui,nameFont,24) end
+    text(trackLeft,nameY,ui.fit(gui,nameFont or font,t.name,cfg.targetNameSize,trackRight-trackLeft-reserved-2,s),cfg.targetNameSize,t.nameColor or (t.monster and 0xFF66FFFF or 0xFFFFDFC0),nameFont)
     if nameFont then gui.PopFont() end
     if distance~=''then text(trackRight-width(distance,cfg.targetNameSize),nameY,distance,cfg.targetNameSize)end
     -- Only the HP track has a border; the surrounding canvas stays transparent.

@@ -1,9 +1,10 @@
 addon.name='partyxi'
 addon.author='Mr.Bear'
-addon.version='0.1.69'
+addon.version='0.1.70'
 addon.desc='Party frames, target and subtarget HUD, and personal TP arc for Ashita v4.'
 require('common')
 local imgui=require('imgui')
+local ui=require('ui_compat')
 local settings=require('settings')
 local ffi=require('ffi')
 local d3d=require('d3d8')
@@ -171,7 +172,7 @@ local function beginWindow(id,x,y,w,h,allowConfigInput,passThrough)
     imgui.SetNextWindowSize({w,h},ImGuiCond_Always)
     local windowFlags=flags
     if passThrough or (configOpen and not allowConfigInput) then windowFlags=bit.bor(windowFlags,ImGuiWindowFlags_NoInputs) end
-    local visible=imgui.Begin(id,true,windowFlags)
+    local visible=imgui.Begin(id,{true},windowFlags)
     return visible
 end
 local function moveActive(keyX,keyY,locked)
@@ -322,7 +323,7 @@ local function controls()
         if imgui.BeginTabBar('##partyxi_settings_tabs',ImGuiTabBarFlags_NoCloseWithMiddleMouseButton) then
             for _,page in ipairs{'Party','Target','Personal TP','Effects','Menus'} do
                 if imgui.BeginTabItem(page..'##config_page') then
-                    imgui.BeginChild('##partyxi_settings_content_'..page,{0,-40},true)
+                    ui.beginChild(imgui,'##partyxi_settings_content_'..page,{0,-40})
                     imgui.Indent(24)
                     pageControls(page)
                     imgui.Unindent(24)
@@ -370,7 +371,7 @@ ashita.events.register('d3d_present','partyxi_present',function()
         progress=model.clamp(progress+(shown and 1 or -1)*dt/cfg.riseTime,0,1)
         arcTrail,drainState=drain.value(drainState,me.tp,now,cfg.drainSeconds,cfg.drainEnabled,cfg.highDrainSeconds)
     else drainState=nil;progress=0 end
-    imgui.PushFont(font)
+    ui.pushFont(imgui,font,24)
     local showHeader=false
     local h=view.height(roster,showHeader,cfg)
     if cfg.showParty and #roster>0 and not systemHidden and not menuPartyHidden then
