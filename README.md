@@ -109,18 +109,26 @@ Open settings to show the arc for positioning, including while sheathed. Drag it
 
 ## Utsusemi and Third Eye tracking
 
-Enable **Shadow Tracking (Utsusemi / Third Eye)** under **Effects** to automatically track observed protection for party members. Individual player name selection is no longer required.
+<table>
+<tr>
+<td valign="top" width="65%">
+<p>Enable <strong>Shadow Tracking (Utsusemi / Third Eye)</strong> under <strong>Effects</strong> to automatically track observed protection for party members. Individual player name selection is no longer required.</p>
+<ul>
+<li><strong>Blue shell:</strong> Utsusemi or Third Eye is observed active.</li>
+<li><strong>Red shell:</strong> previously observed protection is confirmed lost. The red state remains until protection is observed again or tracking continuity is reset.</li>
+<li><strong>No shell:</strong> no protection has been observed, or the state is unknown/unavailable. Missing data is not treated as confirmed protection loss.</li>
+<li><strong>Blink is intentionally not tracked.</strong></li>
+</ul>
+<p>The translucent shell surrounds the portrait and resource panel, with a rounded left edge, a square right edge, and layered glow. Buff icons remain outside it. Protection tracking uses observed status effects; it does not infer remaining shadow counts.</p>
+<p>An optional, separately movable red <code>-PLAYERNAME</code> alert announces confirmed protection loss for three seconds.</p>
+<img src="screenshots/partyxi-protection-lost-censored.png" alt="PartyXI red protection shell after shadows are lost" width="300">
+</td>
+<td valign="top" width="35%">
+<img src="screenshots/partyxi-player-castbar.png" alt="PartyXI player cast bar and active protection shell" width="300">
+</td>
+</tr>
+</table>
 
-- **Blue shell:** Utsusemi or Third Eye is observed active.
-- **Red shell:** previously observed protection is confirmed lost. The red state remains until protection is observed again or tracking continuity is reset.
-- **No shell:** no protection has been observed, or the state is unknown/unavailable. Missing data is not treated as confirmed protection loss.
-- **Blink is intentionally not tracked.**
-
-The translucent shell surrounds the portrait and resource panel, with a rounded left edge, a square right edge, and layered glow. Buff icons remain outside it. Protection tracking uses observed status effects; it does not infer remaining shadow counts.
-
-An optional, separately movable red `-PLAYERNAME` alert announces confirmed protection loss for three seconds.
-<img src="screenshots/partyxi-player-castbar.png" alt="PartyXI player cast bar" width="300">
-![PartyXI red protection shell after shadows are lost](screenshots/partyxi-protection-lost-censored.png)
 ## Sneak Attack tracking
 
 Shows an estimated Sneak Attack cooldown countdown in the party member's portrait.
