@@ -17,7 +17,6 @@ A replacement for the native party frames, with a target bar and optional combat
 | 0.1.84 | Added detachable P0 with independent saved position/scale, settings open dragging, reset control, and gap free P1–P5 stacking. | 
 | 0.1.85 | Changed minute based duration text from 1m20 to 1:20; short timers retain 22s format. | 
 | 0.1.86-0.1.88 | Added player target of target support when client data is available. Along with other minor polygon adjustments. | 
-| 1.0.0  | Version 1.0.0 marks PartyXI’s stable release, bringing together the updated party frames, detachable player frame, protection visuals, menu hiding, and target displays. 
 
 ---
 
