@@ -133,4 +133,6 @@ Open settings to show the arc for positioning, including while sheathed. Drag it
 
 Shows an estimated Sneak Attack cooldown countdown in the party member's portrait.
 
+<img src="screenshots/partyxi-sneak-attack-censored.png" alt="PartyXI Sneak Attack countdown in the player portrait" width="300">
+
 
