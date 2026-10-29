@@ -5,7 +5,8 @@ local M={}
 M.categories={
     {'equipment','Equipment / check'}, {'inventory','Inventory / storage'},
     {'trade','Player / NPC trade'}, {'auction','Auction house'},
-    {'delivery','Delivery / send boxes'}, {'map','Map'},
+    {'delivery','Delivery / send boxes'}, {'map','Map'}, {'search','Search / sea'},
+    {'chatlog','Expanded chat log'},
 }
 function M.normalize(raw)
     if type(raw)~='string' then return '' end
@@ -30,6 +31,10 @@ add('trade','trade trddummy handover evitem evitem01')
 add('auction','auc1 auc2 auc3 auc4 aucammo aucarmor aucfood auchisto aucitem auclist aucmagic aucmater aucmeals aucweapo aucyn')
 add('delivery','delivery post1 post2 mogpost rmpost')
 add('map','map0 mapframe maplist mapscan mapv1 mapv2 mapv3 mapat maphp mapsg')
+-- scresult verified live on Phoenix for /sea and /sea all.
+add('search','scresult searchma searchna searchjo searchle searchra')
+-- Expanded history panel; do not match ordinary log windows or chat input.
+add('chatlog','fulllog')
 -- These generic panels only inherit an already observed obstructing category.
 local shared={}
 for name in ('ok yesno query numctrl money moneyctr sortyn itmsortw itmsort2 '

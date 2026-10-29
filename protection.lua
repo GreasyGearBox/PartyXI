@@ -15,7 +15,7 @@ function M.update(states,roster,now,cfg)
     local nextStates={}
     for _,m in ipairs(roster)do
         m.protection=nil
-        local selected=cfg.protectionEnabled and cfg.protectionMembers and cfg.protectionMembers[tostring(m.id)]==m.name
+        local selected=cfg.protectionEnabled
         local obs=m.effectObservation
         if selected and m.available and m.effectsKnown and obs and now-obs.time<=cfg.effectStaleSeconds then
             local sig=signature(m)

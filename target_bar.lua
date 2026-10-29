@@ -205,8 +205,9 @@ function M.draw(gui,dl,x,y,t,font,cfg,texture,nameFont)
             if tex then dl:AddImage(tex,p(bx,by),p(bx+iconSize,by+iconSize))end
             local label=cfg.targetTimers and M.timer(t.remaining and t.remaining[id])
             if label then
-                label=fit(label,timerSize,cellWidth-4)
-                text(bx+iconSize/2-width(label,timerSize)/2,by+iconSize+3,label,timerSize)
+                -- Keep the complete duration; shrink only when the cell is narrow.
+                local drawSize=math.min(timerSize,timerSize*(cellWidth-4)/math.max(1,width(label,timerSize)))
+                text(bx+iconSize/2-width(label,drawSize)/2,by+iconSize+3,label,drawSize)
             end
         end
     end

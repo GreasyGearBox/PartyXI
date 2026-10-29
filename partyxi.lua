@@ -1,6 +1,6 @@
 addon.name='partyxi'
 addon.author='Mr.Bear'
-addon.version='0.1.73'
+addon.version='0.1.76'
 addon.desc='Party frames, target and subtarget HUD, and personal TP arc for Ashita v4.'
 require('common')
 local imgui=require('imgui')
@@ -287,16 +287,7 @@ local function controls()
                     end
                     slider('Blue shield intensity (%)','protectionBlue',0,100)
                     slider('Red shield intensity (%)','protectionRed',0,100)
-                        imgui.Text('Track shadows for:')
-                        for _,m in ipairs(currentRoster) do
-                            local key=tostring(m.id)
-                            local value={cfg.protectionMembers[key]==m.name}
-                            if imgui.Checkbox(m.name..'###protection_'..key,value) then
-                                cfg.protectionMembers[key]=value[1] and m.name or nil
-                                protectionStates[m.id]=nil;save()
-                            end
-                        end
-                        if #currentRoster==0 then imgui.Text('No current party data') end
+                    imgui.TextWrapped('Automatically tracks observed Utsusemi and Third Eye for all party members.')
                 end
             end
             if configPage=='Menus' then
@@ -482,10 +473,6 @@ ashita.events.register('d3d_present','partyxi_present',function()
             if type(wx)=='number'and type(wy)=='number'then x=wx+margin;y=wy+margin end
             targetBar.draw(imgui,imgui.GetWindowDrawList(),x,y,target,font,cfg,texture,boldFont)
             drag('target_move',x+80*s,y,(cfg.targetWidth-80)*s,height*s,'targetX','targetY',cfg.targetLocked)
-            if imgui.IsItemHovered()then
-                local details=targetBar.details(target,cfg)
-                imgui.SetTooltip(target.name..(details~=''and ('\n'..details)or ''))
-            end
         end
         imgui.End()
     end
