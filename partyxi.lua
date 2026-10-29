@@ -104,6 +104,13 @@ local function sanitize()
     cfg.castScale=model.clamp(cfg.castScale or 1,.35,3)
     cfg.castX=model.clamp(cfg.castX or cfg.targetX or 500,0,20000)
     cfg.castY=model.clamp(cfg.castY or ((cfg.targetY or 200)+150),0,20000)
+    if cfg.playerCastEnabled==nil then cfg.playerCastEnabled=true end
+    cfg.playerCastX=model.clamp(cfg.playerCastX or 600,0,20000)
+    cfg.playerCastY=model.clamp(cfg.playerCastY or 650,0,20000)
+    cfg.playerCastWidth=model.clamp(cfg.playerCastWidth or 300,100,800)
+    cfg.playerCastHeight=model.clamp(cfg.playerCastHeight or 24,12,60)
+    cfg.playerCastTextSize=model.clamp(cfg.playerCastTextSize or 14,10,36)
+    cfg.playerCastScale=model.clamp(cfg.playerCastScale or 1,.35,3)
     cfg.detachSelf=cfg.detachSelf==true
     cfg.selfX=model.clamp(cfg.selfX or cfg.x,0,20000)
     cfg.selfY=model.clamp(cfg.selfY or (cfg.y+160),0,20000)
@@ -228,6 +235,18 @@ local function controls()
             if imgui.SliderFloat('##'..key,value,lo,hi) then cfg[key]=value[1];save() end
         end
         local function pageControls(configPage)
+            if configPage=='Player cast' then
+                toggle('Show player cast bar','playerCastEnabled')
+                slider('Player cast bar width','playerCastWidth',100,800)
+                slider('Player cast bar height','playerCastHeight',12,60)
+                slider('Player cast bar text size','playerCastTextSize',10,36)
+                slider('Player cast bar scale','playerCastScale',.35,3)
+                imgui.TextWrapped('Drag the player cast bar while settings are open to position it independently.')
+                if imgui.Button('Reset player cast bar')then
+                    cfg.playerCastX=600;cfg.playerCastY=650;cfg.playerCastWidth=300
+                    cfg.playerCastHeight=24;cfg.playerCastTextSize=14;cfg.playerCastScale=1;save()
+                end
+            end
             if configPage=='Target' then
                 toggle('Show target bar','showTarget')
                 toggle('Show target cast bar','castEnabled')
@@ -351,7 +370,7 @@ local function controls()
         -- Native tabs and a scrolling child follow the installed Points and
         -- LuAshitacast settings menus. No manual cursor or clip manipulation.
         if imgui.BeginTabBar('##partyxi_settings_tabs',ImGuiTabBarFlags_NoCloseWithMiddleMouseButton) then
-            for _,page in ipairs{'Party','Target','Personal TP','Effects','Menus'} do
+            for _,page in ipairs{'Party','Target','Player cast','Personal TP','Effects','Menus'} do
                 if imgui.BeginTabItem(page..'##config_page') then
                     ui.beginChild(imgui,'##partyxi_settings_content_'..page,{0,-40})
                     imgui.Indent(24)
@@ -561,6 +580,19 @@ ashita.events.register('d3d_present','partyxi_present',function()
             drag('subtarget_move',x,y,subtargetBar.width*s,subtargetBar.height*s,'subtargetX','subtargetY',cfg.subtargetLocked)
         end
         imgui.End()
+    end
+    if cfg.playerCastEnabled and not systemHidden and not menuPartyHidden then
+        local cast=targetCast.get(identity,now)
+        if not cast and configOpen then cast={name='Your spell / ability',kind=8,started=now-1.5,duration=3}end
+        if cast then
+            local cx,cy=cfg.playerCastX,cfg.playerCastY
+            local cw,ch,cs=cfg.playerCastWidth,cfg.playerCastHeight,cfg.playerCastScale
+            if beginWindow('Player cast###partyxi_player_cast',cx-32,cy-32,cw*cs+64,ch*cs+64,true,not configOpen)then
+                targetCast.draw(imgui,imgui.GetWindowDrawList(),cx,cy,cw,ch,cs,cast,font,{castTextSize=cfg.playerCastTextSize},now)
+                if configOpen then drag('player_cast_move',cx,cy,cw*cs,ch*cs,'playerCastX','playerCastY',false)end
+            end
+            imgui.End()
+        end
     end
     imgui.PopFont()
     -- Render settings after all custom draw-list work, with the normal UI font.
