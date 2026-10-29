@@ -27,7 +27,7 @@ Additional features include:
 1. A customizable target cast bar that can stay attached or move independently.
 2. A separate player cast bar with its own position, size, and scale.
 3. Estimated cast progress and remaining time using Phoenix timing data.
-4. Automatic cast completion and interruption detection.
+4. Cast completion and interruption detection.
 5. Party HP and MP visibility throughout the same zone, even outside entity range.
 6. An attached cast bar that overlays target effects without shifting them.
 
