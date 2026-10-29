@@ -33,9 +33,7 @@ Additional features include:
 5. Party HP and MP visibility throughout the same zone, even outside entity range.
 6. An attached cast bar that overlays target effects without shifting them.
 
-![PartyXI target cast bar showing an ability countdown](screenshots/partyxi-target-castbar.png)
- 
-<img src="screenshots/partyxi-player-castbar.png" alt="PartyXI player cast bar" width="300">
+![PartyXI target cast bar showing an ability countdown](screenshots/partyxi-target-castbar.png) <img src="screenshots/partyxi-player-castbar.png" alt="PartyXI player cast bar" width="300">
 
 ---
 
