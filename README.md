@@ -38,7 +38,7 @@ This marks PartyXI’s stable release, bringing together updated party frames, a
 </ol>
 <img src="screenshots/partyxi-target-castbar.png" alt="PartyXI target cast bar showing an ability countdown" width="580">
 </td>
-<td valign="top" width="30%">
+<td valign="middle" align="center" width="30%">
 <img src="screenshots/partyxi-player-castbar.png" alt="PartyXI independently positioned player cast bar" width="260">
 </td>
 </tr>
