@@ -17,6 +17,19 @@ A replacement for the native party frames, with a target bar and optional combat
 | 0.1.84 | Added detachable P0 with independent saved position/scale, settings open dragging, reset control, and gap free P1–P5 stacking. | 
 | 0.1.85 | Changed minute based duration text from 1m20 to 1:20; short timers retain 22s format. | 
 | 0.1.86-0.1.88 | Added player target of target support when client data is available. Along with other minor polygon adjustments. | 
+---
+
+## Version 1.0.0
+This marks PartyXI’s stable release, bringing together updated party frames, a detachable player frame, clearer shadow and protection indicators, menu hiding, and improved target displays.
+
+Additional features include:
+
+1. A customizable target cast bar that can stay attached or move independently.
+2. A separate player cast bar with its own position, size, and scale.
+3. Estimated cast progress and remaining time using Phoenix timing data.
+4. Automatic cast completion and interruption detection.
+5. Party HP and MP visibility throughout the same zone, even outside entity range.
+6. An attached cast bar that overlays target effects without shifting them.
 
 ---
 
