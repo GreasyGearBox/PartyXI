@@ -24,16 +24,25 @@ A replacement for the native party frames, with a target bar and optional combat
 ## Version 1.0.0
 This marks PartyXI’s stable release, bringing together updated party frames, a detachable player frame, clearer shadow and protection indicators, menu hiding, and improved target displays.
 
-Additional features include:
-
-1. A customizable target cast bar that can stay attached or move independently.
-2. A separate player cast bar with its own position, size, and scale.
-3. Estimated cast progress and remaining time using Phoenix timing data.
-4. Cast completion and interruption detection.
-5. Party HP and MP visibility throughout the same zone, even outside entity range.
-6. An attached cast bar that overlays target effects without shifting them.
-
-![PartyXI target cast bar showing an ability countdown](screenshots/partyxi-target-castbar.png) <img src="screenshots/partyxi-player-castbar.png" alt="PartyXI player cast bar" width="300">
+<table>
+<tr>
+<td valign="top" width="70%">
+<p>Additional features include:</p>
+<ol>
+<li>A customizable target cast bar that can stay attached or move independently.</li>
+<li>A separate player cast bar with its own position, size, and scale.</li>
+<li>Estimated cast progress and remaining time using Phoenix timing data.</li>
+<li>Cast completion and interruption detection.</li>
+<li>Party HP and MP visibility throughout the same zone, even outside entity range.</li>
+<li>An attached cast bar that overlays target effects without shifting them.</li>
+</ol>
+<img src="screenshots/partyxi-target-castbar.png" alt="PartyXI target cast bar showing an ability countdown" width="580">
+</td>
+<td valign="top" width="30%">
+<img src="screenshots/partyxi-player-castbar.png" alt="PartyXI independently positioned player cast bar" width="260">
+</td>
+</tr>
+</table>
 
 ---
 
