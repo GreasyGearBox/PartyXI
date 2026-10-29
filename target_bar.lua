@@ -68,7 +68,7 @@ function M.sample(core)
                 sub={nameColor=M.nameColor(mem,cursor,math.floor((entities:GetSpawnFlags(cursor) or 0)/16)%2==1),id=subId,name=subName,hpp=entities:GetHPPercent(cursor)or 0}
             end
         end
-        return {index=index,nameColor=M.nameColor(mem,index,monster),subtarget=sub,id=id,name=name,hpp=entities:GetHPPercent(index) or 0,
+        return {index=index,player=(entities:GetSpawnFlags(index) or 0)%2==1,nameColor=M.nameColor(mem,index,monster),subtarget=sub,id=id,name=name,hpp=entities:GetHPPercent(index) or 0,
             distance=distance and math.sqrt(math.max(0,distance)),monster=monster,
             info=monster and mobs.get(mem:GetParty():GetMemberZone(0),id,name) or nil}
     end)
@@ -76,7 +76,7 @@ function M.sample(core)
 end
 -- Resolve only referenced entities; never enumerate the entity table.
 function M.actionTarget(core,t,tracker,now)
-    if not t or not t.monster or (t.hpp or 0)<=0 then return nil end
+    if not t or not (t.monster or t.player) or (t.hpp or 0)<=0 then return nil end
     local ok,result=pcall(function()
         local mem=core:GetMemoryManager()
         local entities=mem:GetEntity()
@@ -94,7 +94,9 @@ function M.actionTarget(core,t,tracker,now)
             end)
             return success and value or nil
         end
-        local record=tracker and tracker.targets and tracker.targets[t.id]
+        -- Other players use their client-reported target, never a stale action
+        -- recipient (which could be a heal/buff target).
+        local record=t.monster and tracker and tracker.targets and tracker.targets[t.id]
         if record and type(now)=='number' and now>=record.time and now-record.time<=30 then
             local id=record.id
             local value=entity(playerIndices[id],id,'Last action')
@@ -136,7 +138,7 @@ function M.height(cfg)return 56+6+cfg.targetNameSize+8+cfg.targetInfoSize+8+math
 function M.timer(seconds)
     if type(seconds)~='number'or seconds<=0 then return nil end
     seconds=math.ceil(seconds)
-    if seconds>=60 then return string.format('%dm%02d',math.floor(seconds/60),seconds%60)end
+    if seconds>=60 then return string.format('%d:%02d',math.floor(seconds/60),seconds%60)end
     return seconds..'s'
 end
 function M.draw(gui,dl,x,y,t,font,cfg,texture,nameFont)

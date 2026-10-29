@@ -1,6 +1,6 @@
 addon.name='partyxi'
 addon.author='Mr.Bear'
-addon.version='0.1.76'
+addon.version='1.0.0'
 addon.desc='Party frames, target and subtarget HUD, and personal TP arc for Ashita v4.'
 require('common')
 local imgui=require('imgui')
@@ -94,6 +94,10 @@ local function sanitize()
         if cfg.menuCategories[category[1]]==nil then cfg.menuCategories[category[1]]=true end
     end
     cfg.scale=model.clamp(cfg.scale,.35,2)
+    cfg.detachSelf=cfg.detachSelf==true
+    cfg.selfX=model.clamp(cfg.selfX or cfg.x,0,20000)
+    cfg.selfY=model.clamp(cfg.selfY or (cfg.y+160),0,20000)
+    cfg.selfScale=model.clamp(cfg.selfScale or cfg.scale,.35,2)
     cfg.jobTextSize=model.clamp(cfg.jobTextSize or defaults.jobTextSize,10,32)
     cfg.distanceTextSize=model.clamp(cfg.distanceTextSize or defaults.distanceTextSize,10,32)
     cfg.nameTextSize=model.clamp(cfg.nameTextSize or defaults.nameTextSize,10,32)
@@ -120,8 +124,10 @@ local function sanitize()
     cfg.shadowAlertX=model.clamp(cfg.shadowAlertX or 500,0,20000)
     cfg.shadowAlertY=model.clamp(cfg.shadowAlertY or 250,0,20000)
     cfg.protectionMembers=cfg.protectionMembers or T{}
-    cfg.protectionBlue=model.clamp(cfg.protectionBlue or defaults.protectionBlue,0,100)
-    cfg.protectionRed=model.clamp(cfg.protectionRed or 80,0,100)
+    cfg.protectionBlue=model.clamp(cfg.protectionBlue or defaults.protectionBlue,0,300)
+    cfg.protectionRed=model.clamp(cfg.protectionRed or 80,0,300)
+    cfg.protectionShellOpacity=model.clamp(cfg.protectionShellOpacity or 14,0,100)
+    cfg.protectionShellGlow=model.clamp(cfg.protectionShellGlow or 100,0,500)
     cfg.protectionRedSeconds=model.clamp(cfg.protectionRedSeconds or 1.5,.3,4)
     for _,key in ipairs{'x','y','gaugeX','gaugeY'} do cfg[key]=model.clamp(cfg[key],0,20000) end
 end
@@ -248,6 +254,14 @@ local function controls()
                 toggle('Hide during cutscenes / native UI hidden','autoHide')
                 toggle('Lock positions','locked')
                 slider('Party scale','scale',.35,2)
+                toggle('Detach own player frame','detachSelf')
+                if cfg.detachSelf then
+                    slider('Own frame scale','selfScale',.35,2)
+                    imgui.TextWrapped('Drag your own name while settings are open to move your frame independently.')
+                    if imgui.Button('Reset own frame position')then
+                        cfg.selfX=cfg.x;cfg.selfY=cfg.y+160;cfg.selfScale=cfg.scale;save()
+                    end
+                end
                 slider('Player name size','nameTextSize',10,32)
                 slider('Job text size','jobTextSize',10,32)
                 slider('Distance text size','distanceTextSize',10,32)
@@ -285,8 +299,10 @@ local function controls()
                     if cfg.shadowLossText then
                         slider('Shadow-loss text size','shadowAlertTextSize',14,64)
                     end
-                    slider('Blue shield intensity (%)','protectionBlue',0,100)
-                    slider('Red shield intensity (%)','protectionRed',0,100)
+                    slider('Blue shield intensity (%)','protectionBlue',0,300)
+                    slider('Red shield intensity (%)','protectionRed',0,300)
+                    slider('Shield shell opacity (%)','protectionShellOpacity',0,100)
+                    slider('Shield glow strength (%)','protectionShellGlow',0,500)
                     imgui.TextWrapped('Automatically tracks observed Utsusemi and Third Eye for all party members.')
                 end
             end
@@ -366,23 +382,36 @@ ashita.events.register('d3d_present','partyxi_present',function()
     else drainState=nil;progress=0 end
     ui.pushFont(imgui,font,24)
     local showHeader=false
-    local h=view.height(roster,showHeader,cfg)
-    if cfg.showParty and #roster>0 and not systemHidden and not menuPartyHidden then
+    local groups={}
+    local stacked={}
+    for _,member in ipairs(roster)do
+        if cfg.detachSelf and member.slot==0 then
+            groups[#groups+1]={members={member},own=true}
+        else stacked[#stacked+1]=member end
+    end
+    if #stacked>0 then groups[#groups+1]={members=stacked,own=false}end
+    for _,group in ipairs(groups)do
+    local frameRoster=group.members
+    local h=view.height(frameRoster,showHeader,cfg)
+    if cfg.showParty and not systemHidden and not menuPartyHidden then
         local s,x,y=cfg.scale,cfg.x,cfg.y
+        local keyX,keyY='x','y'
+        if group.own then s=cfg.selfScale;x=cfg.selfX;y=cfg.selfY;keyX='selfX';keyY='selfY'end
         local margin=(cfg.protectionEnabled or (cfg.partyTP and cfg.tpPulse))and view.glowMargin*s or 0
-        if beginWindow('PartyXI###partyxi_frame',x-margin,y-margin,440*s+2*margin,h*s+2*margin) then
+        local windowId=group.own and 'Own player###partyxi_self' or 'PartyXI###partyxi_frame'
+        if beginWindow(windowId,x-margin,y-margin,model.partyWidth(frameRoster)*s+2*margin,h*s+2*margin,true) then
             local function hit(id,a,b,w,hh,member)
                 imgui.SetCursorScreenPos({x+a*s,y+b*s})
                 local clicked=imgui.InvisibleButton(id,{w*s,hh*s})
                 if member then
                     if imgui.IsItemActive() and imgui.IsMouseDragging(0) then targetDrags[id]=true end
-                    if clicked and not targetDrags[id] then targeting.select(member,AshitaCore) end
+                    if clicked and not configOpen and not targetDrags[id] then targeting.select(member,AshitaCore) end
                     if not imgui.IsMouseDown(0) then targetDrags[id]=nil end
                 end
-                if id=='name'..roster[1].id then moveActive('x','y') end
+                if id=='name'..frameRoster[1].id then moveActive(keyX,keyY,not configOpen and cfg.locked) end
                 return imgui.IsItemHovered()
             end
-            view.party(imgui,imgui.GetWindowDrawList(),x,y,s,roster,font,texture,hit,false,cfg.partyTP,showHeader,cfg.tpPulseStrength,cfg,boldFont)
+            view.party(imgui,imgui.GetWindowDrawList(),x,y,s,frameRoster,font,texture,hit,false,cfg.partyTP,showHeader,cfg.tpPulseStrength,cfg,boldFont)
             -- Small padlock in the unused area immediately left of the name.
             local lx,ly=x+52*s,y
             local dl=imgui.GetWindowDrawList()
@@ -394,11 +423,12 @@ ashita.events.register('d3d_present','partyxi_present',function()
             dl:AddLine({lx+7*s+offset,ly+4*s},{lx+13*s+offset,ly+4*s},color,1.5*s)
             dl:AddLine({lx+13*s+offset,ly+4*s},{lx+13*s+offset,ly+(cfg.locked and 9 or 6)*s},color,1.5*s)
             imgui.SetCursorScreenPos({lx,ly})
-            imgui.InvisibleButton('party_lock',{20*s,20*s})
+            imgui.InvisibleButton(group.own and 'self_lock' or 'party_lock',{20*s,20*s})
             if imgui.IsItemClicked(0) then cfg.locked=not cfg.locked;save() end
             if imgui.IsItemHovered() then imgui.SetTooltip(cfg.locked and 'Locked: click to unlock' or 'Unlocked: drag your name to move; click to lock') end
         end
         imgui.End()
+    end
     end
     if arcTrail and cfg.showGauge and progress>0 and not systemHidden and not menuArcHidden then
         local s=cfg.gaugeScale

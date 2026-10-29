@@ -38,9 +38,18 @@ function M.split(effects, metadata, overrides)
     end
     return good,bad
 end
--- Retain mockup's base 117px row; expand only when actual icon count needs it.
+M.maxPartyBuffs=32
+-- Buffs occupy one horizontal row; only vertical debuffs can add height.
 function M.rowHeight(good,bad)
-    return math.max(117,91+math.ceil(math.max(1,good)/11)*27,24+bad*27+4)
+    return math.max(117,118,24+bad*27+4)
+end
+function M.partyWidth(roster)
+    local width=440
+    for _,member in ipairs(roster)do
+        local count=math.min(#member.good,M.maxPartyBuffs)
+        if count>0 then width=math.max(width,77+(count-1)*27+24+8)end
+    end
+    return width
 end
 -- Shared measurements for drawing, icon hitboxes, row stacking and window height.
 -- Only authoritative party slot 0 identifies the local player's row.
@@ -61,9 +70,9 @@ function M.memberLayout(member,cfg)
         hpTextOffset=(hpHeight-hpText)/2,mpHeight=mpHeight,mpText=mpText,mpTextOffset=(mpHeight-mpText)/2,
         panelBottom=panelBottom,mpY=51+hpExtra,
         tpTextY=74+extra,tpTop=31,tpBottom=panelBottom-6,
-        buffsY=panelBottom+8,warningY=panelBottom+9,
+        buffsY=math.max(104,panelBottom+16),warningY=panelBottom+9,
         rowHeight=M.rowHeight(#member.good,#member.bad)+extra}
-    layout.rowHeight=math.max(layout.buffsY+math.max(1,math.ceil(#member.good/11))*27+3,24+#member.bad*27+4)+nameExtra
+    layout.rowHeight=math.max(layout.buffsY+27+3,24+#member.bad*27+4)+nameExtra
     return layout
 end
 function M.resource(current,maximum)

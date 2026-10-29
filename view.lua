@@ -9,7 +9,7 @@ local paths=geometry.paths()
 local jobs={'WAR','MNK','WHM','BLM','RDM','THF','PLD','DRK','BST','BRD','RNG','SAM','NIN','DRG','SMN','BLU','COR','PUP','DNC','SCH','GEO','RUN'}
 local colors={bg=0xF0332010,border=0xFFB4A091,name=0xFFEDC5E2,text=0xFFFFFFFF,muted=0xFFFFFFFF,leaderName=0xFF78D8F0,memberName=0xFFFFDFC0,cyan=0xFFD5B658}
 -- Six base units of transparent bounds for outer glows. No content/hitbox offsets.
-M.glowMargin=6
+M.glowMargin=12
 local function alpha(rgb,a)return math.floor(model.clamp(a,0,1)*255+.5)*0x1000000+rgb end
 function M.height(roster,showHeader,cfg)
     local h=showHeader and 34 or 0
@@ -69,6 +69,38 @@ function M.party(imgui,dl,x,y,s,roster,font,texture,hit,preview,showTP,showHeade
         local protection=m.protection
         local tint=protection and protection.amount or 0
         local rgb=protection and protection.kind=='red'and 0x00504CFF or 0x00FF9D42
+        if tint>0 then
+            -- Convex capsule, clockwise in screen space. A triangle fan and
+            -- ordinary lines avoid host-specific path/polyline signatures.
+            local upper=top+20
+            local lower=math.max(top+94,top+layout.panelBottom+3)
+            local centerY=(upper+lower)/2
+            local function shell(pad,fill,opacity,thickness)
+                local radius=(lower-upper)/2+pad
+                -- Three base pixels of clearance around the portrait and panel.
+                -- Keep the left curve anchored to the portrait as bars get taller.
+                local points={{395+pad,upper-pad},{395+pad,lower+pad}}
+                local centerX=36.5
+                for i=0,12 do
+                    local angle=math.pi/2+i*math.pi/12
+                    points[#points+1]={centerX+math.cos(angle)*(36.5+pad),centerY+math.sin(angle)*radius}
+                end
+                local color=alpha(rgb,tint*opacity)
+                for i,a in ipairs(points)do
+                    local b=points[i%#points+1]
+                    if fill then dl:AddTriangleFilled(p(197.5,centerY),p(a[1],a[2]),p(b[1],b[2]),color)
+                    else dl:AddLine(p(a[1],a[2]),p(b[1],b[2]),color,thickness*s)end
+                end
+            end
+            local opacity=(cfg and cfg.protectionShellOpacity or 14)/100
+            local glow=(cfg and cfg.protectionShellGlow or 100)/100
+            local weight=math.max(1,math.sqrt(glow))
+            shell(5,false,.07*glow,2*weight)
+            shell(3,false,.13*glow,2*weight)
+            shell(1,false,.25*glow,1.5*weight)
+            shell(0,true,opacity,0)
+            shell(0,false,.95*glow,1.5*weight)
+        end
         local job=jobs[m.job] or '?'
         rect(49,top+23,392,top+layout.panelBottom,colors.bg)
         dl:AddRect(p(49,top+23),p(392,top+layout.panelBottom),m.slot==0 and colors.name or colors.border,3*s,0,s)
@@ -94,11 +126,11 @@ function M.party(imgui,dl,x,y,s,roster,font,texture,hit,preview,showTP,showHeade
             rect(77,by,edge,by+height,bg)
             local ratio=m.available and model.clamp(percent,0,100)/100 or 0
             if ratio>0 then dl:AddRectFilledMultiColor(p(77,by),p(77+(edge-77)*ratio,by+height),left,rightColor,rightColor,left) end
-            local value=label..' '..(type(current)=='number' and tostring(math.floor(current)) or '--')
+            local value=type(current)=='number' and tostring(math.floor(current)) or '--'
             local valueWidth=measure(value,textSize,boldFont)
-            local size=math.min(textSize,(edge-77-8)*textSize/math.max(1,valueWidth))
+            local size=math.min(textSize,(edge-77)*.9*textSize/math.max(1,valueWidth))
             dl:PushClipRect(p(77,by),p(edge,by+height),true)
-            right(edge-3,by+(height-size)/2,value,size,nil,boldFont)
+            text((77+edge-measure(value,size,boldFont))/2,by+(height-size)/2,value,size,nil,false,boldFont)
             dl:PopClipRect()
         end
         bar('HP',m.hp,m.maxhp,m.hpp,top+31,0xFF2C253B,0xFF44349C,0xFF736AE3,layout.hpHeight,layout.hpText,layout.hpTextOffset)
@@ -126,13 +158,6 @@ function M.party(imgui,dl,x,y,s,roster,font,texture,hit,preview,showTP,showHeade
             end
         end
         dl:AddCircleFilled(p(36.5,top+57.5),33.5*s,0xFF332010,48)
-        if tint>0 then
-            -- A restrained glassy shield is confined to the portrait, beneath
-            -- its artwork/counter rather than washing over the resource bars.
-            dl:AddCircleFilled(p(36.5,top+57.5),33*s,alpha(rgb,tint*.22),64)
-            dl:AddCircle(p(36.5,top+57.5),37*s,alpha(rgb,tint*.20),64,3.5*s)
-            dl:AddCircle(p(36.5,top+57.5),35*s,alpha(rgb,math.min(.95,tint*1.7)),64,1.5*s)
-        end
         local hat=jobAssets[job] and texture('jobs/'..jobAssets[job])
         if hat then
             local placement=hatLayout[job]
@@ -155,7 +180,7 @@ function M.party(imgui,dl,x,y,s,roster,font,texture,hit,preview,showTP,showHeade
             local size=math.min(48,54*24/math.max(1,width),48*24/math.max(1,height))
             text(36.5-width*size/24/2,top+57.5-height*size/24/2,value,size,0xFF3333FF)
         end
-        dl:AddCircle(p(36.5,top+57.5),33.5*s,tint>0 and alpha(rgb,math.min(1,tint*3)) or colors.border,64,tint>0 and 2*s or 1.5*s)
+        dl:AddCircle(p(36.5,top+57.5),33.5*s,colors.border,64,1.5*s)
         if hit('job'..m.id,2,top+24,69,67) then imgui.SetTooltip(hat and job..' hat artwork' or job..': hat artwork missing (placeholder)') end
         local function effect(id,ex,ey,slot)
             local tex=texture('status/'..id..'.png',id)
@@ -166,7 +191,10 @@ function M.party(imgui,dl,x,y,s,roster,font,texture,hit,preview,showTP,showHeade
                 imgui.SetTooltip((info and info.name or ('Status effect '..id))..' (ID '..id..')\nDuration unavailable'..(tex and '' or '\nNative icon missing'))
             end
         end
-        for k,id in ipairs(m.good) do effect(id,77+((k-1)%11)*27,top+layout.buffsY+math.floor((k-1)/11)*27,'g'..k) end
+        for k,id in ipairs(m.good) do
+            if k>model.maxPartyBuffs then break end
+            effect(id,77+(k-1)*27,top+layout.buffsY,'g'..k)
+        end
         for k,id in ipairs(m.bad) do effect(id,407,top+24+(k-1)*27,'b'..k) end
         if not m.available then text(77,top+layout.warningY,m.state,10,colors.muted) end
         top=nameTop+layout.rowHeight
