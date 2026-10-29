@@ -2,6 +2,8 @@
 
 A replacement for the native party frames, with a target bar and optional combat TP bar.
 
+![PartyXI party frames and target cast bar](screenshots/partyxi-party-and-castbar-censored.png)
+
 ## Update notes - changes since approved 0.1.73
 
 | Build | Changes |
@@ -30,6 +32,8 @@ Additional features include:
 4. Cast completion and interruption detection.
 5. Party HP and MP visibility throughout the same zone, even outside entity range.
 6. An attached cast bar that overlays target effects without shifting them.
+![PartyXI target cast bar showing an ability countdown](screenshots/partyxi-target-castbar.png)
+![PartyXI independently positioned player cast bar](screenshots/partyxi-player-castbar.png)
 
 ---
 
@@ -106,7 +110,8 @@ Enable **Shadow Tracking (Utsusemi / Third Eye)** under **Effects** to automatic
 The translucent shell surrounds the portrait and resource panel, with a rounded left edge, a square right edge, and layered glow. Buff icons remain outside it. Protection tracking uses observed status effects; it does not infer remaining shadow counts.
 
 An optional, separately movable red `-PLAYERNAME` alert announces confirmed protection loss for three seconds.
-
+![PartyXI independently positioned player cast bar](screenshots/partyxi-player-castbar.png)
+![PartyXI red protection shell after shadows are lost](screenshots/partyxi-protection-lost-censored.png)
 ## Sneak Attack tracking
 
 Shows an estimated Sneak Attack cooldown countdown in the party member's portrait.
