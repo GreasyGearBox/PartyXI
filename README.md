@@ -107,6 +107,8 @@ An independently movable and scalable TP display, with readiness pulses and conf
 
 Open settings to show the arc for positioning, including while sheathed. Drag it while settings are open even if normal play positions are locked; closing settings restores the position lock.
 
+<img src="screenshots/partyxi-personal-tp-arc-censored.png" alt="PartyXI independently positioned personal TP arc at 1000 TP" width="450">
+
 ## Utsusemi and Third Eye tracking
 
 <table>
