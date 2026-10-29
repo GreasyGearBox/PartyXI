@@ -33,7 +33,7 @@ Additional features include:
 5. Party HP and MP visibility throughout the same zone, even outside entity range.
 6. An attached cast bar that overlays target effects without shifting them.
 ![PartyXI target cast bar showing an ability countdown](screenshots/partyxi-target-castbar.png)
-![PartyXI independently positioned player cast bar](screenshots/partyxi-player-castbar.png)
+<img src="screenshots/partyxi-player-castbar.png" alt="PartyXI player cast bar" width="300">
 
 ---
 
@@ -110,7 +110,7 @@ Enable **Shadow Tracking (Utsusemi / Third Eye)** under **Effects** to automatic
 The translucent shell surrounds the portrait and resource panel, with a rounded left edge, a square right edge, and layered glow. Buff icons remain outside it. Protection tracking uses observed status effects; it does not infer remaining shadow counts.
 
 An optional, separately movable red `-PLAYERNAME` alert announces confirmed protection loss for three seconds.
-![PartyXI independently positioned player cast bar](screenshots/partyxi-player-castbar.png)
+<img src="screenshots/partyxi-player-castbar.png" alt="PartyXI player cast bar" width="300">
 ![PartyXI red protection shell after shadows are lost](screenshots/partyxi-protection-lost-censored.png)
 ## Sneak Attack tracking
 
