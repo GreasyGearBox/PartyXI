@@ -111,9 +111,6 @@ Open settings to show the arc for positioning, including while sheathed. Drag it
 
 ## Utsusemi and Third Eye tracking
 
-<table>
-<tr>
-<td valign="top" width="65%">
 <p>Enable <strong>Shadow Tracking (Utsusemi / Third Eye)</strong> under <strong>Effects</strong> to automatically track observed protection for party members. Individual player name selection is no longer required.</p>
 <ul>
 <li><strong>Blue shell:</strong> Utsusemi or Third Eye is observed active.</li>
@@ -123,11 +120,11 @@ Open settings to show the arc for positioning, including while sheathed. Drag it
 </ul>
 <p>The translucent shell surrounds the portrait and resource panel, with a rounded left edge, a square right edge, and layered glow. Buff icons remain outside it. Protection tracking uses observed status effects; it does not infer remaining shadow counts.</p>
 <p>An optional, separately movable red <code>-PLAYERNAME</code> alert announces confirmed protection loss for three seconds.</p>
-<img src="screenshots/partyxi-protection-lost-censored.png" alt="PartyXI red protection shell after shadows are lost" width="300">
-</td>
-<td valign="top" width="35%">
-<img src="screenshots/partyxi-player-castbar.png" alt="PartyXI player cast bar and active protection shell" width="300">
-</td>
+
+<table>
+<tr>
+<td align="center" valign="middle"><img src="screenshots/partyxi-protection-active-censored.png" alt="PartyXI blue shell showing active Utsusemi or Third Eye protection" width="350"></td>
+<td align="center" valign="middle"><img src="screenshots/partyxi-protection-lost-censored.png" alt="PartyXI red shell showing confirmed protection loss" width="350"></td>
 </tr>
 </table>
 
