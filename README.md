@@ -90,10 +90,6 @@ Under **Menus**, choose **Selected obstructing menus** or **All noncombat menus*
 
 Search hiding includes `/sea` and `/sea all` result menus. Expanded chat hiding targets the full chat history panel; ordinary chat input is excluded. 
 
-The **Also hide personal TP arc** setting controls whether the arc follows menu hiding. Party visibility also governs the target/subtarget displays and the detached own player frame. Existing cutscene and native interface hiding remain available.
-
-For troubleshooting, `/pxi menudebug` toggles menu name reporting in chat.
-
 ## Target and subtarget bars
 
 - Displays target HP, name, distance, and an independently positioned subtarget bar.
