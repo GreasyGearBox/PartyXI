@@ -134,7 +134,7 @@ function M.details(t,cfg)
     end
     return table.concat(parts,' | ')
 end
-function M.height(cfg)return 56+6+cfg.targetNameSize+8+cfg.targetInfoSize+8+math.max(24,cfg.targetHPSize+6)+2*(32+(cfg.targetTimers and (cfg.targetTimerSize or 12)+4 or 0))+8 end
+function M.height(cfg,castExtra)return 56+6+cfg.targetNameSize+8+cfg.targetInfoSize+8+math.max(24,cfg.targetHPSize+6)+2*(32+(cfg.targetTimers and (cfg.targetTimerSize or 12)+4 or 0))+8+(castExtra or 0) end
 function M.timer(seconds)
     if type(seconds)~='number'or seconds<=0 then return nil end
     seconds=math.ceil(seconds)
@@ -170,7 +170,7 @@ function M.draw(gui,dl,x,y,t,font,cfg,texture,nameFont)
     local reserved=distance~='' and width(distance,cfg.targetNameSize)+12 or 0
     local hpY=nameY+math.max(cfg.targetNameSize,cfg.targetInfoSize)+5
     local hpH=math.max(18,cfg.targetHPSize+2)
-    local infoY=hpY+hpH+7
+    local infoY=hpY+hpH+7+(t.castExtra or 0)
     local panelBottom=infoY+(details~='' and cfg.targetInfoSize+3 or 0)
     -- Main target name always uses the bold face, including width measurement.
     if nameFont then ui.pushFont(gui,nameFont,24) end

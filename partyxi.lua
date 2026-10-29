@@ -5,6 +5,7 @@ addon.desc='Party frames, target and subtarget HUD, and personal TP arc for Ashi
 require('common')
 local imgui=require('imgui')
 local ui=require('ui_compat')
+local targetCast=require('target_cast')
 local settings=require('settings')
 local ffi=require('ffi')
 local d3d=require('d3d8')
@@ -94,6 +95,15 @@ local function sanitize()
         if cfg.menuCategories[category[1]]==nil then cfg.menuCategories[category[1]]=true end
     end
     cfg.scale=model.clamp(cfg.scale,.35,2)
+    if cfg.castEnabled==nil then cfg.castEnabled=true end
+    cfg.castDetached=cfg.castDetached==true
+    cfg.castWidthPercent=model.clamp(cfg.castWidthPercent or 50,20,100)
+    cfg.castWidth=model.clamp(cfg.castWidth or 240,100,800)
+    cfg.castHeight=model.clamp(cfg.castHeight or 24,12,60)
+    cfg.castTextSize=model.clamp(cfg.castTextSize or 14,10,36)
+    cfg.castScale=model.clamp(cfg.castScale or 1,.35,3)
+    cfg.castX=model.clamp(cfg.castX or cfg.targetX or 500,0,20000)
+    cfg.castY=model.clamp(cfg.castY or ((cfg.targetY or 200)+150),0,20000)
     cfg.detachSelf=cfg.detachSelf==true
     cfg.selfX=model.clamp(cfg.selfX or cfg.x,0,20000)
     cfg.selfY=model.clamp(cfg.selfY or (cfg.y+160),0,20000)
@@ -220,6 +230,19 @@ local function controls()
         local function pageControls(configPage)
             if configPage=='Target' then
                 toggle('Show target bar','showTarget')
+                toggle('Show target cast bar','castEnabled')
+                toggle('Detach target cast bar','castDetached')
+                if cfg.castDetached then
+                    slider('Cast bar width','castWidth',100,800)
+                    slider('Cast bar scale','castScale',.35,3)
+                else slider('Cast bar width (% of HP bar)','castWidthPercent',20,100)end
+                slider('Cast bar height','castHeight',12,60)
+                slider('Cast bar text size','castTextSize',10,36)
+                if imgui.Button('Reset cast bar')then
+                    cfg.castDetached=false;cfg.castWidthPercent=50;cfg.castWidth=240
+                    cfg.castHeight=24;cfg.castTextSize=14;cfg.castScale=1
+                    cfg.castX=cfg.targetX;cfg.castY=cfg.targetY+150;save()
+                end
                 toggle('Lock target position','targetLocked')
                 slider('Target scale (portrait: 72 px at 100%)','targetScale',.35,2)
                 slider('Target bar width','targetWidth',300,800)
@@ -496,17 +519,36 @@ ashita.events.register('d3d_present','partyxi_present',function()
         end
         local s,x,y=cfg.targetScale,cfg.targetX,cfg.targetY
         local margin=math.max(32,32*s)
-        local height=targetBar.height(cfg)
+        local cast=cfg.castEnabled and (targetCast.get(target.id,now) or (configOpen and {name='Spell / Ability',kind=8,started=now})) or nil
+        if (target.hpp or 0)<=0 then targetCast.clear(target.id);cast=nil end
+        target.castExtra=0
+        local height=targetBar.height(cfg,target.castExtra)
         if beginWindow('Target###partyxi_target',x-margin,y-margin,cfg.targetWidth*s+2*margin,height*s+2*margin,true)then
             local wx,wy=imgui.GetWindowPos()
             if type(wx)=='table' or type(wx)=='userdata' then local pos=wx;wx=pos.x or pos[1];wy=pos.y or pos[2]end
             if type(wx)=='number'and type(wy)=='number'then x=wx+margin;y=wy+margin end
             targetBar.draw(imgui,imgui.GetWindowDrawList(),x,y,target,font,cfg,texture,boldFont)
             drag('target_move',x+80*s,y,(cfg.targetWidth-80)*s,height*s,'targetX','targetY',cfg.targetLocked)
+            if cast and not cfg.castDetached then
+                local cx,cy,cw,ch,cs=targetCast.geometry(cfg,x,y)
+                targetCast.draw(imgui,imgui.GetWindowDrawList(),cx,cy,cw,ch,cs,cast,font,cfg,now)
+            end
         end
         imgui.End()
     end
     local sub=target and target.subtarget
+    if cfg.castEnabled and cfg.castDetached and not systemHidden and not menuPartyHidden then
+        local cast=target and (target.hpp or 0)>0 and targetCast.get(target.id,now) or nil
+        if not cast and configOpen then cast={name='Spell / Ability',kind=8,started=now}end
+        if cast then
+            local cx,cy,cw,ch,cs=targetCast.geometry(cfg,0,0)
+            if beginWindow('Cast###partyxi_cast',cx-32,cy-32,cw*cs+64,ch*cs+64,true,not configOpen)then
+                targetCast.draw(imgui,imgui.GetWindowDrawList(),cx,cy,cw,ch,cs,cast,font,cfg,now)
+                if configOpen then drag('cast_move',cx,cy,cw*cs,ch*cs,'castX','castY',false)end
+            end
+            imgui.End()
+        end
+    end
     if cfg.showTarget and not systemHidden and not menuPartyHidden and (sub or configOpen) then
         local display=sub or {name='Subtarget',hpp=100}
         local s,x,y=cfg.subtargetScale,cfg.subtargetX,cfg.subtargetY
@@ -528,16 +570,23 @@ ashita.events.register('packet_in','partyxi_effects',function(e)
     if not e.injected then targetBar.observePlayer(e.id,e.data_modified or e.data) end
     if not e.injected and e.id==0x028 and e.data_raw and e.size then
         local ok,action=pcall(targetTracker.parse,e,ashita.bits.unpack_be)
-        if ok then targetTracker.observe(action,imgui.GetTime())end
+        if ok then
+            local now=imgui.GetTime()
+            targetTracker.observe(action,now)
+            local resourceOK,resources=pcall(function()return AshitaCore:GetResourceManager()end)
+            targetCast.observe(action,now,resourceOK and resources or nil)
+        end
     end
     if not e.injected and e.id==0x029 then
         local packet=e.data_modified or e.data
         if type(packet)=='string'and #packet>=26 then
             local function uint(at,n)local v=0;for i=0,n-1 do v=v+packet:byte(at+i)*256^i end;return v end
-            targetTracker.message(uint(9,4),uint(13,4),uint(25,2)%32768)
+            local actor,message=uint(9,4),uint(25,2)%32768
+            targetTracker.message(actor,uint(13,4),message)
+            if message==6 or message==20 or message==97 or message==113 or message==406 or message==605 then targetCast.clear(actor)end
         end
     end
-    if e.id==0x00A or e.id==0x00B then targetTracker.reset();data.clear();drainState=nil;progress=0;partyTPStates={};personalTPStates={};protectionStates={}
+    if e.id==0x00A or e.id==0x00B then targetCast.reset();targetTracker.reset();data.clear();drainState=nil;progress=0;partyTPStates={};personalTPStates={};protectionStates={}
     elseif e.id==0x0DD then data.clearEffects();drainState=nil;progress=0;partyTPStates={};personalTPStates={} end
     if e.id==0x076 and not e.injected then data.packet(e.data_modified or e.data,imgui.GetTime()) end
     if e.id==0x028 and not e.injected and cfg.showSAHats then

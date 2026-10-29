@@ -104,12 +104,15 @@ function M.sample(now,cfg)
             local m={id=id,slot=i,name=name,isLeader=leaderId~=nil and id==leaderId,job=call(party,'GetMemberMainJob',i) or 0,
                 subjob=call(party,'GetMemberSubJob',i) or 0,available=not not available,
                 level=call(party,'GetMemberMainJobLevel',i) or 0,sublevel=call(party,'GetMemberSubJobLevel',i) or 0,
-                zone=call(party,'GetMemberZone',i) or 0,localZone=sameZone,active=active~=0 and active~=false,
-                state=sameZone and 'Unavailable / out of range' or 'Other zone'}
-            if available then
+                zone=call(party,'GetMemberZone',i) or 0,localZone=sameZone,resourcesAvailable=sameZone,active=active~=0 and active~=false,
+                state=sameZone and 'Out of range' or 'Other zone'}
+            -- Party HP/MP do not require a nearby loaded world entity.
+            if sameZone then
                 m.hp=call(party,'GetMemberHP',i);m.mp=call(party,'GetMemberMP',i)
-                m.tp=call(party,'GetMemberTP',i)
                 m.hpp=call(party,'GetMemberHPPercent',i);m.mpp=call(party,'GetMemberMPPercent',i)
+            end
+            if available then
+                m.tp=call(party,'GetMemberTP',i)
                 local distance=call(entity,'GetDistance',idx)
                 m.distance=distance and math.sqrt(math.max(0,distance))
                 if i==0 then m.maxhp=call(player,'GetHPMax');m.maxmp=call(player,'GetMPMax') end

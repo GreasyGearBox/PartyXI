@@ -124,7 +124,7 @@ function M.party(imgui,dl,x,y,s,roster,font,texture,hit,preview,showTP,showHeade
             height=height or 15;textSize=textSize or 10;textOffset=textOffset or 1
             local edge=showTP~=false and 343 or 383
             rect(77,by,edge,by+height,bg)
-            local ratio=m.available and model.clamp(percent,0,100)/100 or 0
+            local ratio=(m.resourcesAvailable or m.available) and model.clamp(percent,0,100)/100 or 0
             if ratio>0 then dl:AddRectFilledMultiColor(p(77,by),p(77+(edge-77)*ratio,by+height),left,rightColor,rightColor,left) end
             local value=type(current)=='number' and tostring(math.floor(current)) or '--'
             local valueWidth=measure(value,textSize,boldFont)
