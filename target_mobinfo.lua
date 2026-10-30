@@ -18,7 +18,8 @@ function M.get(zone,id,name)
     local index=data.ids[id]
     if index then
         local row=data.rows[index]
-        return row and row.name==name and row or nil
+        -- The zone and exact server ID identify the spawn; pool names may have internal suffixes.
+        return row
     end
     index=data.names[name]
     return index and data.rows[index] or nil

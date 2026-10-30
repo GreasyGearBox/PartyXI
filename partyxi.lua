@@ -1,6 +1,6 @@
 addon.name='partyxi'
 addon.author='Mr.Bear'
-addon.version='1.0.0'
+addon.version='1.0.5'
 addon.desc='Party frames, target and subtarget HUD, and personal TP arc for Ashita v4.'
 require('common')
 local imgui=require('imgui')
@@ -550,7 +550,7 @@ ashita.events.register('d3d_present','partyxi_present',function()
             drag('target_move',x+80*s,y,(cfg.targetWidth-80)*s,height*s,'targetX','targetY',cfg.targetLocked)
             if cast and not cfg.castDetached then
                 local cx,cy,cw,ch,cs=targetCast.geometry(cfg,x,y)
-                targetCast.draw(imgui,imgui.GetWindowDrawList(),cx,cy,cw,ch,cs,cast,font,cfg,now)
+                targetCast.draw(imgui,imgui.GetWindowDrawList(),cx,cy,cw,ch,cs,target and target.id==identity and targetCast.withNative(cast,AshitaCore:GetMemoryManager()) or cast,font,cfg,now)
             end
         end
         imgui.End()
@@ -562,7 +562,7 @@ ashita.events.register('d3d_present','partyxi_present',function()
         if cast then
             local cx,cy,cw,ch,cs=targetCast.geometry(cfg,0,0)
             if beginWindow('Cast###partyxi_cast',cx-32,cy-32,cw*cs+64,ch*cs+64,true,not configOpen)then
-                targetCast.draw(imgui,imgui.GetWindowDrawList(),cx,cy,cw,ch,cs,cast,font,cfg,now)
+                targetCast.draw(imgui,imgui.GetWindowDrawList(),cx,cy,cw,ch,cs,target and target.id==identity and targetCast.withNative(cast,AshitaCore:GetMemoryManager()) or cast,font,cfg,now)
                 if configOpen then drag('cast_move',cx,cy,cw*cs,ch*cs,'castX','castY',false)end
             end
             imgui.End()
@@ -582,7 +582,7 @@ ashita.events.register('d3d_present','partyxi_present',function()
         imgui.End()
     end
     if cfg.playerCastEnabled and not systemHidden and not menuPartyHidden then
-        local cast=targetCast.get(identity,now)
+        local cast=targetCast.withNative(targetCast.get(identity,now),AshitaCore:GetMemoryManager())
         if not cast and configOpen then cast={name='Your spell / ability',kind=8,started=now-1.5,duration=3}end
         if cast then
             local cx,cy=cfg.playerCastX,cfg.playerCastY
@@ -619,7 +619,7 @@ ashita.events.register('packet_in','partyxi_effects',function(e)
         end
     end
     if e.id==0x00A or e.id==0x00B then targetCast.reset();targetTracker.reset();data.clear();drainState=nil;progress=0;partyTPStates={};personalTPStates={};protectionStates={}
-    elseif e.id==0x0DD then data.clearEffects();drainState=nil;progress=0;partyTPStates={};personalTPStates={} end
+    elseif e.id==0x0DD then data.clearEffects() end
     if e.id==0x076 and not e.injected then data.packet(e.data_modified or e.data,imgui.GetTime()) end
     if e.id==0x028 and not e.injected and cfg.showSAHats then
         data.observeSA(e,imgui.GetTime(),cfg,ashita.bits.unpack_be)
