@@ -1,6 +1,6 @@
 addon.name='partyxi'
 addon.author='Mr.Bear'
-addon.version='1.0.5'
+addon.version='1.0.12'
 addon.desc='Party frames, target and subtarget HUD, and personal TP arc for Ashita v4.'
 require('common')
 local imgui=require('imgui')

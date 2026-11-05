@@ -18,11 +18,14 @@ function M.get(zone,id,name)
     local index=data.ids[id]
     if index then
         local row=data.rows[index]
-        -- The zone and exact server ID identify the spawn; pool names may have internal suffixes.
-        return row
+        if not row then return nil end
+        if row.name==name then return row end
+        -- Only explicit names from this Phoenix template are valid aliases.
+        for _,alias in ipairs(row.aliases or {})do if alias==name then return row end end
+        return nil
     end
-    index=data.names[name]
-    return index and data.rows[index] or nil
+    -- Unmapped IDs may be dynamic or stale spawns; never guess their facts by name.
+    return nil
 end
 function M.label(info)
     if not info then return nil end

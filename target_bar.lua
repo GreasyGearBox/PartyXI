@@ -1,4 +1,5 @@
 local ui=require('ui_compat')
+local effectIcons=require('data.tracking_rules').icons
 local M={}
 local mobs=require('target_mobinfo')
 local anonymous={}
@@ -25,11 +26,17 @@ end
 -- ImGui colors are ABGR: native yellow, outside-claim pink, own-claim red.
 function M.nameColor(mem,index,monster)
     if not monster then
-        local ok,id=pcall(function()
+        local ok,color=pcall(function()
             local ent=mem:GetEntity()
-            if (ent:GetSpawnFlags(index) or 0)%2==1 then return ent:GetServerId(index) end
+            local flags=ent:GetSpawnFlags(index) or 0
+            if flags%2==1 then
+                return anonymous[ent:GetServerId(index)] and 0xFFFF8855 or 0xFFFFDFC0
+            end
+            -- NPC flag includes service targets such as Auction House counters.
+            if math.floor(flags/2)%2==1 then return 0xFF99CC99 end
+            return 0xFFFFDFC0
         end)
-        return ok and anonymous[id] and 0xFFFF8855 or 0xFFFFDFC0
+        return ok and color or 0xFFFFDFC0
     end
     local ok,color=pcall(function()
         local claim=(mem:GetEntity():GetClaimStatus(index) or 0)%65536
@@ -203,7 +210,8 @@ function M.draw(gui,dl,x,y,t,font,cfg,texture,nameFont)
             if i>cols*2 then break end
             local bx=trackLeft+1+(i-1)%cols*cellWidth+(cellWidth-iconSize)/2
             local by=panelBottom+6+math.floor((i-1)/cols)*rowHeight
-            local tex=texture and texture('status/'..id..'.png',id)
+            local icon=effectIcons[id] or id
+            local tex=texture and texture('status/'..icon..'.png',icon)
             if tex then dl:AddImage(tex,p(bx,by),p(bx+iconSize,by+iconSize))end
             local label=cfg.targetTimers and M.timer(t.remaining and t.remaining[id])
             if label then
